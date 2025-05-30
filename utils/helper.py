@@ -11,9 +11,7 @@ def initial_recommendations():
 
 def coin_selector():
     coin = select_coin()
-    print("\n")
     print(coin)
-    print("\n")
     return coin
 
 def strategy_selector(coin=DataFrame):

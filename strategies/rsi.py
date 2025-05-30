@@ -1,6 +1,7 @@
 from pandas import DataFrame
 
 def rsi_indicator(coin=DataFrame):
+    coin = coin.copy()
     coin['close'] = coin['close'].astype(float)
     delta = coin['close'].diff()
     gain = delta.clip(lower=0)
