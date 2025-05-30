@@ -1,0 +1,9 @@
+source ~/cdp-env/bin/activate  ---> activates the virtual environment for this project.
+deactivate --> deactivates the virtual environment
+
+/Users/bp/Downloads/cdp_api_key.json
+
+
+My virtual environment path : /Users/bp/cdp-env/bin/python
+
+can you hide row number by changing a dataframe 'to_string()' and then setting 'index=False'
