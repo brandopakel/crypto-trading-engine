@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from utils.plot import plot_strategy
 
 def defined_bollinger_bands_strategy(coin=DataFrame,window=20,num_std=2):
     coin = coin.copy()
@@ -15,5 +16,7 @@ def defined_bollinger_bands_strategy(coin=DataFrame,window=20,num_std=2):
     coin.loc[coin['close'] > coin['UpperBand'], 'signal'] = -1
 
     coin.dropna(inplace=True)
+
+    plot_strategy(coin, title="Bollinger Bands", overlays=["UpperBand", "LowerBand", "MA"], indicators=["STD"], signal_col='signal')
 
     return coin

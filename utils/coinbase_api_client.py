@@ -101,7 +101,7 @@ def get_coin_from_user_submitted_basename():
         }
         for match in products if match is not None
     ])
-    matched_coin_df = matched_df[matched_df["Base-Name"] == baseid]
+    matched_coin_df = matched_df[matched_df["Base-Name"].str.lower() == baseid.lower()]
     return matched_coin_df
 
 def get_coin_from_user_submitted_baseid():

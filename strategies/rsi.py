@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from utils.plot import plot_strategy
 
 def rsi_indicator(coin=DataFrame):
     coin = coin.copy()
@@ -17,5 +18,7 @@ def rsi_indicator(coin=DataFrame):
     coin.loc[coin['RSI']>70, 'signal'] = -1 
 
     coin.dropna(inplace=True)
+
+    plot_strategy(coin, title="RSI Indicator", indicators=["RSI"], signal_col='signal')
 
     return coin

@@ -1,6 +1,5 @@
 from utils.helper import initial_recommendations, coin_selector, strategy_selector
 
-
 initial_recommendations()
 coin = coin_selector()
 while coin is not None:
@@ -9,5 +8,5 @@ while coin is not None:
     if choice.strip().lower() == 'y':
         continue
     elif choice.strip().lower() == 'n':
-        print("\nThank you for your time.")
+        print("\nThank you for your time.\n")
         break

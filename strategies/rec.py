@@ -1,5 +1,6 @@
 from utils.coinbase_api_client import get_public_products
 from utils.logger import save_log
+from utils.plot import plot_strategy
 
 def greatest_price_percentage_change_24h():
     #global counter

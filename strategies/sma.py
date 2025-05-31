@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from utils.plot import plot_strategy
 
 def moving_average_crossover(coin=DataFrame):
     coin = coin.copy()
@@ -11,5 +12,7 @@ def moving_average_crossover(coin=DataFrame):
     coin.loc[coin['SMA_Short']<coin['SMA_Long'],'signal'] = -1
 
     coin.dropna(inplace=True)
+
+    plot_strategy(coin, title="MA Crossover Strategy", overlays=["SMA_Short", "SMA_Long"], signal_col='signal')
     
     return coin

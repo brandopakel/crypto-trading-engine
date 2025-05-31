@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from utils.plot import plot_strategy
 
 def macd_crossover(coin=DataFrame, short_ema=12, long_ema=26, signal_ema=9):
     coin = coin.copy()
@@ -13,5 +14,7 @@ def macd_crossover(coin=DataFrame, short_ema=12, long_ema=26, signal_ema=9):
     coin.loc[coin['MACD']<coin['Signal_Line'],'signal'] = -1
 
     coin.dropna(inplace=True)
+
+    plot_strategy(coin, title="MACD Strategy", indicators=["MACD", "Signal_Line"], signal_col='signal')
 
     return coin
