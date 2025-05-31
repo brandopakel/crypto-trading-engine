@@ -3,10 +3,11 @@ from coinbase.rest import RESTClient
 import pandas as pd
 import csv
 from utils.user_input import get_user_selected_basename, get_user_selected_basesymbol, get_user_selected_product_id, set_user_time_interval, set_user_granularity
-import datetime
 from utils.validate_granularity import validate_granularity
 from dotenv import load_dotenv
 import os
+from datetime import timedelta, datetime
+import time
 
 load_dotenv("/Users/bp/Documents/py_trading_rec/env/keys.env")
 api_key = os.getenv("KEY")
@@ -139,10 +140,7 @@ def get_product_candles(id=str):
     product_id = id
     start_dt, end_dt = set_user_time_interval()
     granularity = set_user_granularity()
-    validated_granularity = validate_granularity(start_dt,end_dt,granularity)
-    #print(start_dt)
-    #print(end_dt)
-    #current_time = get_unix_time()
+    validated_granularity, user_granularity_seconds = validate_granularity(start_dt,end_dt,granularity)
     candles = client.get_candles(product_id=product_id, start=start_dt,end=end_dt,granularity=validated_granularity)
     #candle = candles.candles
     candle_dicts = [vars(candle) for candle in candles.candles]
@@ -158,6 +156,46 @@ def get_product_candles(id=str):
     df = df.sort_values('start').reset_index(drop=True)
     return df
     #return candle
+
+def fetch_all_candles(id=str):
+    MAX_CANDLES = 350
+
+    product_id = id
+    start_dt, end_dt = set_user_time_interval()
+    granularity = set_user_granularity()
+    validated_granularity, user_granularity_seconds = validate_granularity(start_dt,end_dt,granularity)
+
+    all_candles = []
+    current_start = start_dt
+    delta = user_granularity_seconds * MAX_CANDLES
+
+    while current_start < end_dt:
+        current_end = min(current_start + delta, end_dt)
+
+        try:
+            candles = client.get_candles(product_id=product_id, start=current_start, end=current_end, granularity=validated_granularity).candles
+
+            if not candles:
+                print(f"No data returned between {current_start} and {current_end}")
+                break
+            
+            all_candles.extend(candles)
+            time.sleep(0.2)
+        except Exception as e:
+            print(f"Error fetching candles: {e}")
+            break
+
+        current_start = current_end
+
+    return all_candles
+        
+
+def aggregate_all_candles(candles: list):
+    candle_dict = [vars(candle) for candle in candles]
+    df = pd.DataFrame(candle_dict)
+    df['start'] = pd.to_datetime(df['start'].astype(int),unit='s')
+    df = df.sort_values('start').reset_index(drop=True)
+    return df
 
 def get_product_id_from_basename(baseid: str) -> str | None:
     products = client.get_public_products().products

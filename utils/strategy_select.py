@@ -3,6 +3,7 @@ from strategies.rsi import rsi_indicator
 from strategies.macd import macd_crossover
 from strategies.bollingerbands import defined_bollinger_bands_strategy
 from strategies.roc import rate_of_change_strategy
+from strategies.zscore import zscore_mean_reversion
 from pandas import DataFrame
 
 def strategy_select(coin=DataFrame):
@@ -13,8 +14,9 @@ def strategy_select(coin=DataFrame):
         print("3: MACD Crossover")
         print("4: Bollinger Band Strategy")
         print("5: ROC Strategy")
+        print("6: Z-Score Mean Reversion Strategy")
         
-        choice = input("\nEnter strategy number 1-5: ")
+        choice = input("\nEnter strategy number 1-6: ")
 
         if choice == '1':
             result = moving_average_crossover(coin)
@@ -33,6 +35,9 @@ def strategy_select(coin=DataFrame):
             threshold = float(input("\nEnter the ROC threshold (e.g., 0): "))
             result = rate_of_change_strategy(coin,period,threshold)
             return result
+        elif choice == '6':
+            result = zscore_mean_reversion(coin)
+            return result 
         else:
-            print("Invalid choice. Please enter a number 1-5")
+            print("Invalid choice. Please enter a number 1-6")
             continue
