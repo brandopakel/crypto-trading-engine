@@ -17,6 +17,7 @@ A Python-based crypto trading engine designed to analyze market data, generate t
   - (Planned) ADX (Average Directional Index)
   - (Planned) Volume-Weighted Average Price (VWAP)
   - (Planned) Candlestick Pattern Recognition
+  - Plus More ...
 - 📦 Real-time data pulled via the **Coinbase API**
 - 🧪 Strategy testing on historical candle data
 - 🧠 Trade recommendations based on selected strategy logic
