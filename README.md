@@ -10,6 +10,7 @@ A Python-based crypto trading engine designed to analyze market data, generate t
   - RSI
   - Moving Average Crossovers
   - Bollinger Bands
+  - ROC
   - (Planned) Fibonacci Retracement
   - (Planned) Ichimoku Cloud
   - (Planned) OBV (On-Balance Volume)
@@ -26,7 +27,7 @@ A Python-based crypto trading engine designed to analyze market data, generate t
 - **Python 3.11+**
 - **Coinbase Advanced Trade API**
 - **Pandas** for data manipulation
-- **Matplotlib / Plotly** (optional, for visualization)
+- **Matplotlib / Plotly** (for visualization)
 - (Optional) **Flask API** to connect with Next.js frontend
 
 ## 🗂 Project Structure
@@ -38,12 +39,12 @@ crypto-trading-engine/
 │ ├── bollinger_bands.py
 │ └── ...
 │
-├── core/
+├── utils/
 │ ├── engine.py # Main engine to run selected strategy
 │ ├── data_fetcher.py # Handles API requests to Coinbase
 │ └── utils.py # Helper functions
 │
-├── tests/ # Unit and integration tests
+├── data/ # All logs/exports as well as integration and backtests
 │
 ├── env/ # API keys (ignored by Git)
 │ └── keys.env
