@@ -8,13 +8,16 @@ class Coin:
         self.product_id = product_id
         self.df = pd.DataFrame(candles) if candles else pd.DataFrame()
     
-    def fetch_candles(self):
+    def get_candles(self):
         candles = fetch_all_candles(self.product_id)
+        if not candles:
+            print("⚠️ No candles returned!")
         self.df = aggregate_all_candles(candles)
+        print(f"\n{self.product_id} Historical Data: ")
+        print(self.df)
 
-    def strategy_select(self):
-        strategy = strategy_select(self.df)
-        return strategy
-    
-    def plot(self, title ="Strategy Visualization", overlays=None, indicators=None, signals=""):
-        plot_strategy(self.df, title, overlays, indicators)
+    def fetch_candles(self):
+        return self.df
+
+    def strategy_plot(self):
+        strategy_select(self.df)
