@@ -1,6 +1,6 @@
 from utils.Strategy import Strategy, BollingerBandsStrategy, MACDCrossoverStrategy,  RateOfChangeStrategy, RSIStrategy, MovingAverageCrossoverStrategy, ZScoreMeanReversionStrategy
 from pandas import DataFrame
-from utils.helper import get_user_roc_inputs
+from utils.user_input import get_user_roc_inputs
 
 def strategy_select(coin = DataFrame) -> Strategy:
     while True:

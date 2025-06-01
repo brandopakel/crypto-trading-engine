@@ -18,12 +18,3 @@ def strategy_selector(coin=DataFrame):
     result = strategy_select(coin)
     print("\n")
     print(result)
-
-def get_user_roc_inputs():
-    while True:
-        try:
-            period = int(input("\nEnter the lookback period for ROC (e.g. 12): "))
-            threshold = float(input("\nEnter the ROC threshold (e.g., 0): "))
-            return period, threshold
-        except ValueError:
-            print("Invalid input. Please enter numeric values")

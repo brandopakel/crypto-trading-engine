@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 from typing import Optional
 from plotly.subplots import make_subplots
 
-def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", overlays: Optional[list] = None, indicators: Optional[list] = None, signal_col: str = "signal") -> go.Figure:
+def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", overlays: Optional[list] = None, indicators: Optional[list] = None, signal_col: str = 'signal') -> go.Figure:
     coin = coin.copy()    
     coin['timestamp'] = pd.to_datetime(coin['start'], unit='s')
 
@@ -11,7 +11,7 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
 
     fig.add_trace(trace=go.Candlestick(
         x=coin['timestamp'], 
-        open=coin['open'].astype(float), 
+        open=coin['open'].astype(float),
         high=coin['high'].astype(float), 
         low=coin['low'].astype(float), 
         close=coin['close'].astype(float), 
@@ -28,8 +28,7 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
                     name=col
                 ), row=1, col=1)
 
-    
-    if signal_col in coin.columns:
+    if signal_col and signal_col in coin.columns:
         buys = coin[coin[signal_col] == 1]
         sells = coin[coin[signal_col] == -1]
 

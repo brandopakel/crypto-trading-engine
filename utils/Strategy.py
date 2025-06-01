@@ -18,6 +18,9 @@ class BollingerBandsStrategy(Strategy):
     def __init__(self, window=20, num_std=2):
         self.window = window
         self.num_std = num_std
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
     
     def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
         coin = coin.copy()
@@ -33,18 +36,34 @@ class BollingerBandsStrategy(Strategy):
         coin.loc[coin['close'] < coin['LowerBand'], 'signal'] = 1
         coin.loc[coin['close'] > coin['UpperBand'], 'signal'] = -1
 
+        self.overlay_cols = ['UpperBand', 'LowerBand', 'MA']
+        self.indicator_cols = ['STD']
+        self.signal_cols = ['signal']
+
         coin.dropna(inplace=True)
 
         return coin
     
-    def plot(self, coin : pd.DataFrame, title:str = "", overlays: Optional[list]=None, indicators: Optional[list] = None, signal_col: str = "signal") -> go.Figure:
-        plot_strategy(coin, title="Bollinger Bands", overlays=["UpperBand", "LowerBand", "MA"], indicators=["STD"], signal_col='signal')
+    def apply_strategies(self, coin: pd.DataFrame, strategies: list[Strategy]) -> pd.DataFrame:
+        coin = coin.copy()
 
+        for strategy in strategies:
+            result = strategy.apply(coin)
+            new_cols = [col for col in result.columns if col not in coin.columns]
+            coin[new_cols] = result[new_cols]
+
+        return coin
+    
+    def plot(self, coin : pd.DataFrame, title:str = "", signal_col: str = "signal") -> go.Figure:
+        plot_strategy(coin, title="Bollinger Bands", overlays=getattr(self, 'overlay_cols', []), indicators=getattr(self, 'indicator_cols', []), signal_col=signal_col)
     
 class RateOfChangeStrategy(Strategy):
     def __init__(self, period: int, threshold: float):
         self.period = period
         self.threshold = threshold
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
     
     def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
         coin = coin.copy()
@@ -56,18 +75,34 @@ class RateOfChangeStrategy(Strategy):
         coin.loc[coin['ROC'] > self.threshold, 'signal'] = 1
         coin.loc[coin['ROC'] < self.threshold, 'signal'] = -1
 
+        self.indicator_cols = ['ROC']
+        self.signal_cols = ['signal']
+
         coin.dropna(inplace=True)
 
         return coin
     
-    def plot(self, coin : pd.DataFrame, title:str = "", overlays: Optional[list]=None, indicators: Optional[list] = None, signal_col: str = "signal") -> go.Figure:
-        plot_strategy(coin, title="Rate of Change Strategy", indicators=["ROC"], signal_col='signal')
+    def apply_strategies(self, coin: pd.DataFrame, strategies: list[Strategy]) -> pd.DataFrame:
+        coin = coin.copy()
+
+        for strategy in strategies:
+            result = strategy.apply(coin)
+            new_cols = [col for col in result.columns if col not in coin.columns]
+            coin[new_cols] = result[new_cols]
+
+        return coin
+    
+    def plot(self, coin : pd.DataFrame, title:str = "", signal_col: str = "signal") -> go.Figure:
+        plot_strategy(coin, title="Rate of Change Strategy", overlays=getattr(self, 'overlay_cols', []), indicators=getattr(self, 'indicator_cols', []), signal_col=signal_col)
 
 class MACDCrossoverStrategy(Strategy):
     def __init__(self, short_ema=12, long_ema=26, signal_ema=9):
         self.short_ema = short_ema
         self.long_ema = long_ema
         self.signal_ema = signal_ema
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
     
     def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
         coin = coin.copy()
@@ -81,16 +116,32 @@ class MACDCrossoverStrategy(Strategy):
         coin.loc[coin['MACD']>coin['Signal_Line'],'signal'] = 1
         coin.loc[coin['MACD']<coin['Signal_Line'],'signal'] = -1
 
+        self.indicator_cols = ['MACD', 'Signal_Line']
+        self.signal_cols = ['signal']
+
         coin.dropna(inplace=True)
 
         return coin
     
-    def plot(self, coin : pd.DataFrame, title:str = "", overlays: Optional[list]=None, indicators: Optional[list] = None, signal_col: str = "signal") -> go.Figure:
-        plot_strategy(coin, title="MACD Strategy", indicators=["MACD", "Signal_Line"], signal_col='signal')
+    def apply_strategies(self, coin: pd.DataFrame, strategies: list[Strategy]) -> pd.DataFrame:
+        coin = coin.copy()
+
+        for strategy in strategies:
+            result = strategy.apply(coin)
+            new_cols = [col for col in result.columns if col not in coin.columns]
+            coin[new_cols] = result[new_cols]
+
+        return coin
+    
+    def plot(self, coin : pd.DataFrame, title:str = "", signal_col: str = "signal") -> go.Figure:
+        plot_strategy(coin, title="MACD Strategy", overlays=getattr(self, 'overlay_cols', []), indicators=getattr(self, 'indicator_cols', []), signal_col=signal_col)
 
 class RSIStrategy(Strategy):
     def __init__(self, window = 14):
         self.window = window
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
     
     def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
         coin = coin.copy()
@@ -106,19 +157,35 @@ class RSIStrategy(Strategy):
         coin['RSI'] = coin['RSI'].astype(float)
         coin['signal'] = 0
         coin.loc[coin['RSI']<30, 'signal'] = 1
-        coin.loc[coin['RSI']>70, 'signal'] = -1 
+        coin.loc[coin['RSI']>70, 'signal'] = -1
+
+        self.indicator_cols = ['RSI'] 
+        self.signal_cols = ['signal']
 
         coin.dropna(inplace=True)
 
         return coin
     
-    def plot(self, coin : pd.DataFrame, title:str = "", overlays: Optional[list]=None, indicators: Optional[list] = None, signal_col: str = "signal") -> go.Figure:
-        plot_strategy(coin, title="RSI Indicator", indicators=["RSI"], signal_col='signal')
+    def apply_strategies(self, coin: pd.DataFrame, strategies: list[Strategy]) -> pd.DataFrame:
+        coin = coin.copy()
+
+        for strategy in strategies:
+            result = strategy.apply(coin)
+            new_cols = [col for col in result.columns if col not in coin.columns]
+            coin[new_cols] = result[new_cols]
+
+        return coin
+    
+    def plot(self, coin : pd.DataFrame, title:str = "", signal_col: str = "signal") -> go.Figure:
+        plot_strategy(coin, title="RSI Indicator", overlays=getattr(self, 'overlay_cols', []), indicators=getattr(self, 'indicator_cols', []), signal_col=signal_col)
 
 class MovingAverageCrossoverStrategy(Strategy):
     def __init__(self, short_window = 5, long_window = 20):
         self.short_window = short_window
         self.long_window = long_window
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
     
     def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
         coin = coin.copy()
@@ -130,17 +197,33 @@ class MovingAverageCrossoverStrategy(Strategy):
         coin.loc[coin['SMA_Short']>coin['SMA_Long'],'signal'] = 1
         coin.loc[coin['SMA_Short']<coin['SMA_Long'],'signal'] = -1
 
+        self.overlay_cols = ['SMA_Short', 'SMA_Long']
+        self.signal_cols = ['signal']
+
         coin.dropna(inplace=True)
         
         return coin
+    
+    def apply_strategies(self, coin: pd.DataFrame, strategies: list[Strategy]) -> pd.DataFrame:
+        coin = coin.copy()
+
+        for strategy in strategies:
+            result = strategy.apply(coin)
+            new_cols = [col for col in result.columns if col not in coin.columns]
+            coin[new_cols] = result[new_cols]
+
+        return coin
       
-    def plot(self, coin : pd.DataFrame, title:str = "", overlays: Optional[list]=None, indicators: Optional[list] = None, signal_col: str = "signal") -> go.Figure:
-        plot_strategy(coin, title="MA Crossover Strategy", overlays=["SMA_Short", "SMA_Long"], signal_col='signal')
+    def plot(self, coin : pd.DataFrame, title:str = "", signal_col: str = "signal") -> go.Figure:
+        plot_strategy(coin, title="MA Crossover Strategy", overlays=getattr(self, 'overlay_cols', []), indicators=getattr(self, 'indicator_cols', []), signal_col=signal_col)
 
 class ZScoreMeanReversionStrategy(Strategy):
     def __init__(self, window : int = 20, threshold : float = 1.5):
         self.window = window
         self.threshold = threshold
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
     
     def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
         coin = coin.copy()
@@ -154,9 +237,23 @@ class ZScoreMeanReversionStrategy(Strategy):
         coin.loc[coin['Z_Score'] < -self.threshold, 'signal'] = 1
         coin.loc[coin['Z_Score'] > self.threshold, 'signal'] = -1
 
+        self.overlay_cols = ['MA']
+        self.indicator_cols = ['Z_Score']
+        self.signal_cols = ['signal']
+
         coin.dropna(inplace=True)
         
         return coin
     
-    def plot(self, coin : pd.DataFrame, title:str = "", overlays: Optional[list]=None, indicators: Optional[list] = None, signal_col: str = "signal") -> go.Figure:
-        plot_strategy(coin, title=f"Z-Score Mean Reversion Strategy (Window = {self.window}, Threshold = {self.threshold})", overlays=['MA'], indicators=['Z_Score'], signal_col='signal')
+    def apply_strategies(self, coin: pd.DataFrame, strategies: list[Strategy]) -> pd.DataFrame:
+        coin = coin.copy()
+
+        for strategy in strategies:
+            result = strategy.apply(coin)
+            new_cols = [col for col in result.columns if col not in coin.columns]
+            coin[new_cols] = result[new_cols]
+
+        return coin
+    
+    def plot(self, coin : pd.DataFrame, title:str = "", signal_col: str = "signal") -> go.Figure:
+        plot_strategy(coin, title=f"Z-Score Mean Reversion Strategy (Window = {self.window}, Threshold = {self.threshold})", overlays=getattr(self, 'overlay_cols', []), indicators=getattr(self, 'indicator_cols', []), signal_col=signal_col)
