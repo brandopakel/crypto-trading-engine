@@ -33,7 +33,7 @@ def get_client_accounts():
             {
                 "Currency" : acct["currency"],
                 "Name" : acct["name"],
-                "Available Balance" : float(acct["available_balance"]["value"]),
+                "Available Balance" : float(acct["available_balance"]["value"] or 0),
                 "Type" : acct["type"],
                 "Created" : acct["created_at"]
             }
@@ -59,20 +59,19 @@ def get_public_products():
         print("\nacquired product data list")
         products = public_products.products
         print(f"\nNumber of available products: {len(products)}")
+        #print("Raw response:", products)
         public_product_df = pd.DataFrame([
             {
                 "Product-ID" : product["product_id"],
                 "Base-Name" : product["base_name"],
                 "Price" : product["price"],
-                "Price Percentage Change 24h" : float(product["price_percentage_change_24h"]),
-                "Volume 24h" : float(product["volume_24h"]),
+                "Price Percentage Change 24h" : float(product["price_percentage_change_24h"] or 0),
+                "Volume 24h" : float(product["volume_24h"] or 0),
                 "Base Currency ID" : product["base_currency_id"],
                 "Quote Currency ID" : product["quote_currency_id"],
             }
             for product in products if product is not None
         ])
-        #df.to_csv("/Users/bp/Documents/py_trading_rec/data/raw/public_products.csv")
-        #global_product_list = public_product_df
         return public_product_df
     except Exception as e:
         print(f"[Error] Failed to get products: {e}")
@@ -96,7 +95,7 @@ def get_coin_from_user_submitted_basename():
             "Product-ID" : match["product_id"],
             "Base-Name" : match["base_name"],
             "Price" : match["price"],
-            "Price Percentage Change 24h" : float(match["price_percentage_change_24h"]),
+            "Price Percentage Change 24h" : float(match["price_percentage_change_24h"] or 0),
             "Base Currency ID" : match["base_currency_id"],
             "Quote Currency ID" : match["quote_currency_id"],
         }
@@ -114,7 +113,7 @@ def get_coin_from_user_submitted_baseid():
             "Product-ID" : match["product_id"],
             "Base-Name" : match["base_name"],
             "Price" : match["price"],
-            "Price Percentage Change 24h" : float(match["price_percentage_change_24h"]),
+            "Price Percentage Change 24h" : float(match["price_percentage_change_24h"] or 0),
             "Base Currency ID" : match["base_currency_id"],
             "Quote Currency ID" : match["quote_currency_id"],
         }
