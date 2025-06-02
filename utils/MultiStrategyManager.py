@@ -28,7 +28,7 @@ class MultiStrategyManager:
         
         coin.dropna(inplace=True)
 
-        save_log(coin, "/Users/bp/Documents/py_trading_rec/data/raw", "3_strategy_test")
+        save_log(coin, "/Users/bp/Documents/py_trading_rec/data/raw", "strategy_log")
 
         return coin
     
