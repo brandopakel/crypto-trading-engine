@@ -1,4 +1,4 @@
-from utils.Strategy import Strategy, BollingerBandsStrategy, MACDCrossoverStrategy,  RateOfChangeStrategy, RSIStrategy, MovingAverageCrossoverStrategy, ZScoreMeanReversionStrategy
+from utils.Strategy import Strategy, BollingerBandsStrategy, MACDCrossoverStrategy,  RateOfChangeStrategy, RSIStrategy, MovingAverageCrossoverStrategy, ZScoreMeanReversionStrategy, FibonacciRetracementStrategy
 from pandas import DataFrame
 from utils.user_input import get_user_roc_inputs
 
@@ -29,6 +29,10 @@ def strategy_select(coin = DataFrame) -> Strategy:
                 "class": ZScoreMeanReversionStrategy,
                 "desc": "Z-Score of Price vs Moving Average (mean reversion)"
             },
+            "fibonacci": {
+                "class": FibonacciRetracementStrategy,
+                "desc": "Fibonacci Retracement Levels"
+            }
         }
 
         print("\n📊 Available Trading Strategies:")

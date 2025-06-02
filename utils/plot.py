@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 from typing import Optional
 from plotly.subplots import make_subplots
 
-def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", overlays: Optional[list] = None, indicators: Optional[list] = None, signal_col: str = 'signal') -> go.Figure:
+def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", overlays: Optional[list] = None, indicators: Optional[list] = None, fib_levels: Optional[dict] = None, signal_col: str = 'signal') -> go.Figure:
     coin = coin.copy()    
     coin['timestamp'] = pd.to_datetime(coin['start'], unit='s')
 
@@ -58,6 +58,16 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
                         mode='lines',
                         name=col
                     ), row=2, col=1)
+    
+    if fib_levels:
+        for label, level in fib_levels.items():
+            fig.add_hline(
+                y=level,
+                line=dict(color='gold',width=1,dash='dot'),
+                annotation_text=label,
+                annotation_position='right',
+                row=1, col=1
+            )
 
 
     fig.update_layout(xaxis_rangeslider_visible = False, title=title, xaxis_title="Time", yaxis_title="Price", template="plotly_dark", yaxis=dict(autorange=True), yaxis2=dict(autorange=True), showlegend=True, legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1), height = 800)

@@ -40,8 +40,6 @@ class BollingerBandsStrategy(Strategy):
         self.indicator_cols = ['STD']
         self.signal_cols = ['signal']
 
-        coin.dropna(inplace=True)
-
         return coin
     
     def apply_strategies(self, coin: pd.DataFrame, strategies: list[Strategy]) -> pd.DataFrame:
@@ -77,8 +75,6 @@ class RateOfChangeStrategy(Strategy):
 
         self.indicator_cols = ['ROC']
         self.signal_cols = ['signal']
-
-        coin.dropna(inplace=True)
 
         return coin
     
@@ -118,8 +114,6 @@ class MACDCrossoverStrategy(Strategy):
 
         self.indicator_cols = ['MACD', 'Signal_Line']
         self.signal_cols = ['signal']
-
-        coin.dropna(inplace=True)
 
         return coin
     
@@ -162,8 +156,6 @@ class RSIStrategy(Strategy):
         self.indicator_cols = ['RSI'] 
         self.signal_cols = ['signal']
 
-        coin.dropna(inplace=True)
-
         return coin
     
     def apply_strategies(self, coin: pd.DataFrame, strategies: list[Strategy]) -> pd.DataFrame:
@@ -199,8 +191,6 @@ class MovingAverageCrossoverStrategy(Strategy):
 
         self.overlay_cols = ['SMA_Short', 'SMA_Long']
         self.signal_cols = ['signal']
-
-        coin.dropna(inplace=True)
         
         return coin
     
@@ -240,8 +230,6 @@ class ZScoreMeanReversionStrategy(Strategy):
         self.overlay_cols = ['MA']
         self.indicator_cols = ['Z_Score']
         self.signal_cols = ['signal']
-
-        coin.dropna(inplace=True)
         
         return coin
     
@@ -257,3 +245,53 @@ class ZScoreMeanReversionStrategy(Strategy):
     
     def plot(self, coin : pd.DataFrame, title:str = "", signal_col: str = "signal") -> go.Figure:
         plot_strategy(coin, title=f"Z-Score Mean Reversion Strategy (Window = {self.window}, Threshold = {self.threshold})", overlays=getattr(self, 'overlay_cols', []), indicators=getattr(self, 'indicator_cols', []), signal_col=signal_col)
+
+class FibonacciRetracementStrategy(Strategy):
+    def __init__(self):
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
+    
+    def apply(self, coin: pd.DataFrame) -> pd.DataFrame:        
+        highest_high = coin['high'].astype(float).max()
+        lowest_low = coin['low'].astype(float).min()
+
+        coin = coin.copy()
+        coin['close'] = coin['close'].astype(float)
+        coin['high'] = coin['high'].astype(float)
+        coin['low'] = coin['low'].astype(float)
+        coin['volume'] = coin['volume'].astype(float)
+
+        if highest_high == lowest_low:
+            print("Warning] High and Low are equal — skipping Fibonacci calculation.")
+            coin['signal'] = 0
+            return coin
+        
+        diff = highest_high - lowest_low
+
+        self.fib_levels = {
+            "Fib_0.0": highest_high,
+            "Fib_0.236": highest_high - (0.236*diff),
+            "Fib_0.382": highest_high - (0.382*diff),
+            "Fib_0.50": highest_high - (0.50*diff),
+            "Fib_0.618": highest_high - (0.618*diff),
+            "Fib_0.786": highest_high - (0.786*diff),
+            "Fib_1.0": lowest_low
+        }
+
+        coin['signal'] = 0
+
+        for label, level in self.fib_levels.items():
+            coin.loc[
+                (coin['close'] > level) & (coin['close'].shift(1) < level) & (coin['volume'] > coin['volume'].shift(1)), 'signal'
+            ] = 1
+            coin.loc[
+                (coin['close'] < level) & (coin['close'].shift(1) > level) & (coin['volume'] > coin['volume'].shift(1)), 'signal'
+            ] = -1
+
+        self.signal_cols = ['signal']
+
+        return coin
+    
+    def plot(self,coin:pd.DataFrame) -> go.Figure:
+        return plot_strategy(coin, title="Fibonacci Retracement", fib_levels=self.fib_levels, signal_col='signal')
