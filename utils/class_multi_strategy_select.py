@@ -1,6 +1,7 @@
-from utils.Strategy import Strategy, BollingerBandsStrategy, MACDCrossoverStrategy,  RateOfChangeStrategy, RSIStrategy, MovingAverageCrossoverStrategy, ZScoreMeanReversionStrategy, FibonacciRetracementStrategy
+from utils.Strategy import Strategy, BollingerBandsStrategy, MACDCrossoverStrategy,  RateOfChangeStrategy, RSIStrategy, MovingAverageCrossoverStrategy, ZScoreMeanReversionStrategy, FibonacciRetracementStrategy, ElliotWaveStrategy
 from pandas import DataFrame
 from utils.user_input import get_user_roc_inputs
+from strategies.elliot_wave import find_local_extrema, get_user_order_inputs
 
 def multi_strategy_select() -> list[Strategy]:
     selected_strategies = []
@@ -33,7 +34,11 @@ def multi_strategy_select() -> list[Strategy]:
         "fibonacci": {
                 "class": FibonacciRetracementStrategy,
                 "desc": "Fibonacci Retracement Levels"
-            }
+            },
+        "ew": {
+            "class" : ElliotWaveStrategy,
+            "desc" : "Elliot Wave Visualization"
+        }
     }
 
     print("\n📊 Available Trading Strategies:")
@@ -49,6 +54,9 @@ def multi_strategy_select() -> list[Strategy]:
             if strategy_class == RateOfChangeStrategy:
                 period, threshold = get_user_roc_inputs()
                 selected_strategies.append(strategy_class(period, threshold))
+            if strategy_class == ElliotWaveStrategy:
+                order = get_user_order_inputs()
+                selected_strategies.append(strategy_class(order))
             else:
                 selected_strategies.append(strategy_class())
         else:

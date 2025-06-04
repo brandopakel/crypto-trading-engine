@@ -9,10 +9,15 @@ class MultiStrategyManager:
         self.strategies = strategies
         self.signal_cols = []
         self.fib_levels = {}
+        self.wave_labels = []
 
     def apply_strategies(self, coin: pd.DataFrame):
         coin = coin.copy()
         self.signal_cols = []
+        coin['open'] = coin['open'].astype(float)
+        coin['high'] = coin['high'].astype(float)
+        coin['low'] = coin['low'].astype(float)
+        coin['close'] = coin['close'].astype(float)
 
         for strategy in self.strategies:
             strategy_name = strategy.__class__.__name__.replace("Strategy", "").lower()
@@ -35,8 +40,15 @@ class MultiStrategyManager:
 
             if hasattr(strategy, 'fib_levels'):
                 self.fib_levels.update(strategy.fib_levels)
+            
+            if hasattr(strategy, 'wave_labels'):
+                self.wave_labels.extend(strategy.wave_labels)
         
-        coin.dropna(inplace=True)
+        #For testing:
+        #print("After strategies:")
+        #print(coin[['open', 'high', 'low', 'close']].info())
+        
+        #coin.dropna(inplace=True)
 
         #Testing: save_log(coin, "/Users/bp/Documents/py_trading_rec/data/raw", "strategy_log")
 
@@ -77,6 +89,9 @@ class MultiStrategyManager:
             signal_col = 'signal'
         else:
             signal_col = 'signal'
+        
+        #For testing:
+        #print(coin[['open', 'high', 'low', 'close']].tail())
 
         return plot_strategy(
             coin,
@@ -84,5 +99,6 @@ class MultiStrategyManager:
             overlays=list(set(overlays)),
             indicators=list(set(indicators)),
             fib_levels=self.fib_levels,
+            wave_labels=self.wave_labels,
             signal_col= signal_col
         )

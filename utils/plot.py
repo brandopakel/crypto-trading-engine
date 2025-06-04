@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 from typing import Optional
 from plotly.subplots import make_subplots
 
-def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", overlays: Optional[list] = None, indicators: Optional[list] = None, fib_levels: Optional[dict] = None, signal_col: str = 'signal') -> go.Figure:
+def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", overlays: Optional[list] = None, indicators: Optional[list] = None, fib_levels: Optional[dict] = None, wave_labels: Optional[list] = None, signal_col: str = 'signal') -> go.Figure:
     coin = coin.copy()    
     coin['timestamp'] = pd.to_datetime(coin['start'], unit='s')
 
@@ -69,7 +69,64 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
                 row=1, col=1
             )
 
+    if wave_labels:
+        price_range = coin['close'].max() - coin['close'].min()
+        offset_unit = price_range * 0.01
 
-    fig.update_layout(xaxis_rangeslider_visible = False, title=title, xaxis_title="Time", yaxis_title="Price", template="plotly_dark", yaxis=dict(autorange=True), yaxis2=dict(autorange=True), showlegend=True, legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1), height = 800)
+        color_map = {
+            '1': 'orangered',
+            '2': 'darkorange',
+            '3': 'dodgerblue',
+            '4': 'mediumpurple',
+            '5': 'deepskyblue',
+            'a': 'hotpink',
+            'b': 'limegreen',
+            'c': 'magenta'
+        }
+
+        for label in wave_labels:
+            label_col = f"ew_{label}"
+            if label_col in coin.columns:
+                wave_points = coin[~coin[label_col].isna()].copy()
+                if wave_points.empty:
+                    continue
+
+                y_offset = wave_labels.index(label) * offset_unit
+                wave_points['offset_y'] = wave_points[label_col] + y_offset
+
+                # 1. Add markers + text (with legend)
+                fig.add_trace(go.Scatter(
+                    x=wave_points['timestamp'],
+                    y=wave_points['offset_y'],
+                    mode='markers+text',
+                    text=[label] * len(wave_points),
+                    textposition='top center',
+                    name=f'EW {label}',
+                    marker=dict(size=10, symbol='circle', color=color_map.get(label, 'white')),
+                    showlegend=True
+                ), row=1, col=1)
+
+                # 2. Add internal lines (no legend)
+                if len(wave_points) >= 2:
+                    fig.add_trace(go.Scatter(
+                        x=wave_points['timestamp'],
+                        y=wave_points['offset_y'],
+                        mode='lines',
+                        line=dict(color=color_map.get(label, 'white'), width=1.5),
+                        name='',  # don't name it
+                        showlegend=False
+                    ), row=1, col=1)
+    
+    #For testing:
+    #wave_cols = [col for col in coin.columns if col.startswith("ew_")]
+    #print(coin[wave_cols].dropna(how='all').head(10))
+
+    fig.update_layout(xaxis_rangeslider_visible = False, title=dict(text=title, y=0.92), xaxis_title="Time", yaxis_title="Price", template="plotly_dark", yaxis=dict(autorange=True), yaxis2=dict(autorange=True), showlegend=True, legend=dict(
+            orientation='h',
+            yanchor='bottom',
+            y=1.02,  # push legend below plot
+            xanchor='right',
+            x=1
+        ), height = 800)
     fig.show()
     return fig

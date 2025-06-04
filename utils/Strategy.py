@@ -4,6 +4,9 @@ import plotly.graph_objects as go
 from typing import Optional
 from plotly.subplots import make_subplots
 from utils.plot import plot_strategy
+from strategies.elliot_wave import find_local_extrema, is_valid_wave, elliottWaveLinearRegressionError, distance, ElliottWaveDiscovery, is_elliot_wave
+import numpy as np
+import math
 
 class Strategy(ABC):
     """
@@ -295,3 +298,65 @@ class FibonacciRetracementStrategy(Strategy):
     
     def plot(self,coin:pd.DataFrame) -> go.Figure:
         return plot_strategy(coin, title="Fibonacci Retracement", fib_levels=self.fib_levels, signal_col='signal')
+
+class ElliotWaveStrategy(Strategy):
+    def __init__(self, order: int):
+        self.order = order
+        self.overlay_cols = []
+        self.wave_labels = ['0','1','2','3','4','5','a','b','c']
+    def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
+        # Detect extrema on a copy
+        coin = find_local_extrema(coin, self.order)
+
+        # Get only extrema points
+        coin_extrema = coin[coin['FlowMinMax'] != 0].copy()
+        extrema_points = coin_extrema.index.tolist()
+        print(extrema_points)
+
+        # Initialize columns in the full DataFrame
+        for label in self.wave_labels:
+            col_name = f'ew_{label}'
+            if col_name not in coin.columns:
+                coin[col_name] = float('nan')
+
+        candidate_waves = []
+        for i in range(len(extrema_points) - 8):
+            wave = extrema_points[i:i + 9]
+            print(coin.index.min(), coin.index.max())
+            print(set(wave) - set(coin.index))
+            print(f"Checked wave: {wave}")
+            if is_elliot_wave(coin_extrema, *wave):
+                print(f"Valid wave found at indices: {wave}")
+                for label, idx in zip(self.wave_labels, wave):
+                    if idx in coin_extrema.index:
+                        price = coin_extrema.loc[idx, 'close']
+                        print(f"Wave {label} at index {idx} has close price: {price}")
+                    else:
+                        print(f"Index {idx} not found in DataFrame")
+                score = -elliottWaveLinearRegressionError(coin_extrema, wave, 'close')
+                candidate_waves.append((wave, score))
+
+        if not candidate_waves:
+            print("No valid Elliott Waves found.")
+            return coin
+
+        selected_waves = []
+        used_indices = set()
+        for wave, score in sorted(candidate_waves, key=lambda x: x[1], reverse=True):
+            if not any(idx in used_indices for idx in wave):
+                selected_waves.append(wave)
+                used_indices.update(wave)
+
+        # Annotate into full coin DataFrame
+        for wave in selected_waves:
+            for i, idx in enumerate(wave):
+                if i < len(self.wave_labels):
+                    col_name = f'ew_{self.wave_labels[i]}'
+
+                    if idx in coin.index:
+                        coin.at[idx, col_name] = coin.at[idx, 'close']
+
+                        if col_name not in self.overlay_cols:
+                            self.overlay_cols.append(col_name)
+
+        return coin
