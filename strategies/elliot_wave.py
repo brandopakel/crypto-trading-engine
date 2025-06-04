@@ -4,6 +4,7 @@ from scipy.signal import argrelextrema
 from typing import Optional
 from utils.user_input import get_user_order_inputs
 import math
+from sklearn.linear_model import LinearRegression
 
 def auto_tuned_order(coin: pd.DataFrame, min_order: int = 2, max_order: Optional[int] = None, multiplier: float = 0.02) -> int:
     sensitivity = get_user_order_inputs()
@@ -63,10 +64,11 @@ def is_elliot_wave(coin: pd.DataFrame, i0, i1, i2, i3, i4, i5, ia, ib, ic):
             coin.at[i5, 'FlowMinMax'] == 1 and coin.at[ib, 'FlowMinMax'] == 1):
         return False
     
-    print("valid wave: close price 5:")
-    print(close.loc[i5])
-    print("valid wave: close price a:")
-    print(close.loc[ia])
+    #For testing:
+    #print("valid wave: close price 5:")
+    #print(close.loc[i5])
+    #print("valid wave: close price a:")
+    #print(close.loc[ia])
     
     # check impulse wave
     isi5TheTop = close.loc[i5] > close.loc[i1] and close.loc[i5] > close.loc[i2] and \
@@ -346,3 +348,46 @@ def filterWaveSet(waves, min_len=6, max_len=6, extremes=True):
             result.append(w)
 
     return result
+
+def check_local_trend(coin: pd.DataFrame, wave: Optional[list] = None, window: int = 30, trend: str = 'bullish'):
+    i0, i5, ic = wave[0], wave[4], wave[8]
+    coin_idx = coin.index.to_list()
+    if i0 not in coin_idx or i5 not in coin_idx:
+        print(f"Index {i0} or {i5} not found in coin index.")
+        return False
+    
+    try:
+        i0_pos = coin_idx.index(i0)
+        i5_pos = coin_idx.index(i5)
+        ic_pos = coin_idx.index(ic)
+    except KeyError:
+        print(f"One of the wave indices not found in coin index: i0={i0}, i5={i5}")
+
+    window_start = max(i0_pos - window, 0)
+    window_end = min(ic_pos + window, len(coin_idx)-1)
+
+    print(f"Dataframe length: {len(coin)}")
+    print(f"Trying to access: {window_start} to {window_end}")
+
+    sub_df = coin.iloc[window_start:window_end + 1]
+    if len(sub_df) < 2:
+        print("Not enough data for regression.")
+        return False
+    
+    X = np.arange(len(sub_df)).reshape(-1,1)
+    y = sub_df['close'].values.reshape(-1,1)
+    model = LinearRegression().fit(X,y)
+    slope = model.coef_[0][0]
+
+    print(f"Local trends slope: {slope:.6f}")
+
+    start_price = coin.iloc[window_start]['close']
+    end_price = coin.iloc[window_end]['close']
+    close_i5 = coin.at[i5,'close']
+    print(f"Trend check: start_price = {start_price}, end_price = {end_price}")
+
+    if trend == 'bullish':
+        return slope > 0 and end_price > close_i5
+    elif trend == 'bearish':
+        return slope < 0 and end_price < close_i5
+    return False

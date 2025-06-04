@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from typing import Optional
 from plotly.subplots import make_subplots
 from utils.plot import plot_strategy
-from strategies.elliot_wave import find_local_extrema, is_valid_wave, elliottWaveLinearRegressionError, distance, ElliottWaveDiscovery, is_elliot_wave
+from strategies.elliot_wave import find_local_extrema, is_valid_wave, elliottWaveLinearRegressionError, distance, ElliottWaveDiscovery, is_elliot_wave, check_local_trend
 import numpy as np
 import math
 
@@ -311,7 +311,8 @@ class ElliotWaveStrategy(Strategy):
         # Get only extrema points
         coin_extrema = coin[coin['FlowMinMax'] != 0].copy()
         extrema_points = coin_extrema.index.tolist()
-        print(extrema_points)
+        #For testing:
+        #print(extrema_points)
 
         # Initialize columns in the full DataFrame
         for label in self.wave_labels:
@@ -322,10 +323,12 @@ class ElliotWaveStrategy(Strategy):
         candidate_waves = []
         for i in range(len(extrema_points) - 8):
             wave = extrema_points[i:i + 9]
-            print(coin.index.min(), coin.index.max())
-            print(set(wave) - set(coin.index))
-            print(f"Checked wave: {wave}")
+            #print(coin.index.min(), coin.index.max())
+            #print(set(wave) - set(coin.index))
+            #print(f"Checked wave: {wave}")
             if is_elliot_wave(coin_extrema, *wave):
+                if not check_local_trend(coin, wave, window=10,trend='bullish'):
+                    continue
                 print(f"Valid wave found at indices: {wave}")
                 for label, idx in zip(self.wave_labels, wave):
                     if idx in coin_extrema.index:

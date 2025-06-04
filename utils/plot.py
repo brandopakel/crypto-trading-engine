@@ -84,49 +84,71 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
             'c': 'magenta'
         }
 
+        plotted_labels = set()  # Track for legend deduplication
+
         for label in wave_labels:
             label_col = f"ew_{label}"
             if label_col in coin.columns:
-                wave_points = coin[~coin[label_col].isna()].copy()
-                if wave_points.empty:
-                    continue
-
+                wave_points = coin[~coin[label_col].isna()]
                 y_offset = wave_labels.index(label) * offset_unit
-                wave_points['offset_y'] = wave_points[label_col] + y_offset
 
-                # 1. Add markers + text (with legend)
+                # Show legend only once per label
+                show_marker_legend = label not in plotted_labels
+                plotted_labels.add(label)
+
                 fig.add_trace(go.Scatter(
                     x=wave_points['timestamp'],
-                    y=wave_points['offset_y'],
+                    y=wave_points[label_col] + y_offset,
                     mode='markers+text',
+                    name=f"EW {label}",
+                    marker=dict(size=10, symbol='circle', color=color_map.get(label, 'white')),
                     text=[label] * len(wave_points),
                     textposition='top center',
-                    name=f'EW {label}',
-                    marker=dict(size=10, symbol='circle', color=color_map.get(label, 'white')),
-                    showlegend=True
+                    textfont=dict(size=9),
+                    hovertemplate=f'Wave {label}<br>%{{y}}<extra></extra>',
+                    legendgroup=f"EW {label}",
+                    showlegend=show_marker_legend
                 ), row=1, col=1)
 
-                # 2. Add internal lines (no legend)
+                # Line trace (hidden from legend, grouped with marker)
                 if len(wave_points) >= 2:
                     fig.add_trace(go.Scatter(
                         x=wave_points['timestamp'],
-                        y=wave_points['offset_y'],
+                        y=wave_points[label_col],
                         mode='lines',
-                        line=dict(color=color_map.get(label, 'white'), width=1.5),
-                        name='',  # don't name it
-                        showlegend=False
+                        line=dict(color=color_map.get(label, 'white'), width=1.2, dash='dot'),
+                        opacity=0.5,
+                        name='',  # no name
+                        showlegend=False,
+                        legendgroup=f"EW {label}"
                     ), row=1, col=1)
     
     #For testing:
     #wave_cols = [col for col in coin.columns if col.startswith("ew_")]
     #print(coin[wave_cols].dropna(how='all').head(10))
 
-    fig.update_layout(xaxis_rangeslider_visible = False, title=dict(text=title, y=0.92), xaxis_title="Time", yaxis_title="Price", template="plotly_dark", yaxis=dict(autorange=True), yaxis2=dict(autorange=True), showlegend=True, legend=dict(
+    fig.update_layout(
+        xaxis_rangeslider_visible=False,
+        title="Multi-Strategy Overlay",
+        xaxis_title="Time",
+        yaxis_title="Price",
+        template="plotly_dark",
+        yaxis=dict(autorange=True),
+        yaxis2=dict(autorange=True),
+        showlegend=True,
+        legend=dict(
             orientation='h',
             yanchor='bottom',
-            y=1.02,  # push legend below plot
+            y=1.02,
             xanchor='right',
             x=1
-        ), height = 800)
+        ),
+        height=800
+    )
+    for i, trace in enumerate(fig.data):
+        if trace.name and trace.name.startswith('ew_'):
+            fig.data[i].showlegend = False
+            fig.data[i].name = ''
+            fig.data[i].legendgroup = ''
     fig.show()
     return fig
