@@ -11,7 +11,8 @@ A Python-based crypto trading engine designed to analyze market data, generate t
   - Moving Average Crossovers
   - Bollinger Bands
   - ROC
-  - (Planned) Fibonacci Retracement
+  - Fibonacci Retracement
+  - Elliott Wave Visualization
   - (Planned) Ichimoku Cloud
   - (Planned) OBV (On-Balance Volume)
   - (Planned) ADX (Average Directional Index)
