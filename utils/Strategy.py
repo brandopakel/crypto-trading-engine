@@ -249,6 +249,36 @@ class ZScoreMeanReversionStrategy(Strategy):
     def plot(self, coin : pd.DataFrame, title:str = "", signal_col: str = "signal") -> go.Figure:
         plot_strategy(coin, title=f"Z-Score Mean Reversion Strategy (Window = {self.window}, Threshold = {self.threshold})", overlays=getattr(self, 'overlay_cols', []), indicators=getattr(self, 'indicator_cols', []), signal_col=signal_col)
 
+class VWAPStrategy(Strategy):
+    def __init__(self):
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
+    
+    def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
+        coin = coin.copy()
+        coin['close'] = coin['close'].astype(float)
+        coin['volume'] = coin['volume'].astype(float)
+        coin['high'] = coin['high'].astype(float)
+        coin['low'] = coin['low'].astype(float)
+
+        typical_price = (coin['high'] + coin['low'] + coin['close']) / 3
+        vwap = (typical_price*coin['volume']).cumsum() / coin['volume'].cumsum()
+        coin['VWAP'] = vwap
+
+        coin['signal'] = 0
+
+        coin['prev_close'] = coin['close'].shift(1)
+        coin['prev_vwap'] = coin['VWAP'].shift(1)
+
+        coin.loc[(coin['prev_close'] < coin['prev_vwap']) & (coin['close'] > coin['VWAP']), 'signal'] = 1
+        coin.loc[(coin['prev_close'] > coin['prev_vwap']) & (coin['close'] < coin['VWAP']), 'signal'] = -1
+        
+        self.overlay_cols = ['VWAP']
+        self.signal_cols = ['signal']
+
+        return coin
+
 class FibonacciRetracementStrategy(Strategy):
     def __init__(self):
         self.overlay_cols = []

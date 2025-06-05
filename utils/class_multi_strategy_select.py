@@ -1,4 +1,4 @@
-from utils.Strategy import Strategy, BollingerBandsStrategy, MACDCrossoverStrategy,  RateOfChangeStrategy, RSIStrategy, MovingAverageCrossoverStrategy, ZScoreMeanReversionStrategy, FibonacciRetracementStrategy, ElliotWaveStrategy
+from utils.Strategy import Strategy, BollingerBandsStrategy, MACDCrossoverStrategy,  RateOfChangeStrategy, RSIStrategy, MovingAverageCrossoverStrategy, ZScoreMeanReversionStrategy, FibonacciRetracementStrategy, ElliotWaveStrategy, VWAPStrategy
 from pandas import DataFrame
 from utils.user_input import get_user_roc_inputs, get_user_ew_trend
 from strategies.elliot_wave import find_local_extrema, get_user_order_inputs
@@ -30,6 +30,10 @@ def multi_strategy_select() -> list[Strategy]:
         "z": {
             "class": ZScoreMeanReversionStrategy,
             "desc": "Z-Score of Price vs Moving Average (mean reversion)"
+        },
+        "vwap": {
+            "class": VWAPStrategy,
+            "desc": "Volume-Weighted Average Price"
         },
         "fibonacci": {
                 "class": FibonacciRetracementStrategy,

@@ -25,7 +25,11 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
                     x = coin['timestamp'],
                     y = coin[col].astype(float),
                     mode='lines',
-                    name=col
+                    name=col,
+                    line=dict(
+                        color='gold' if col == 'VWAP' else None,
+                        width=2 if col == 'VWAP' else 1
+                    )
                 ), row=1, col=1)
 
     if signal_col and signal_col in coin.columns:

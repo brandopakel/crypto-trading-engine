@@ -16,7 +16,7 @@ A Python-based crypto trading engine designed to analyze market data, generate t
   - (Planned) Ichimoku Cloud
   - (Planned) OBV (On-Balance Volume)
   - (Planned) ADX (Average Directional Index)
-  - (Planned) Volume-Weighted Average Price (VWAP)
+  - Volume-Weighted Average Price (VWAP)
   - (Planned) Candlestick Pattern Recognition
   - Plus More ...
 - 📦 Real-time data pulled via the **Coinbase API**
