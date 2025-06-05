@@ -7,6 +7,7 @@ from utils.plot import plot_strategy
 from strategies.elliot_wave import find_local_extrema, is_valid_wave, elliottWaveLinearRegressionError, distance, ElliottWaveDiscovery, is_elliot_wave, check_local_trend
 import numpy as np
 import math
+from ta.trend import ADXIndicator, IchimokuIndicator
 
 class Strategy(ABC):
     """
@@ -315,6 +316,50 @@ class OBVStrategy(Strategy):
         self.signal_cols = ['signal']
         
         return coin
+    
+class ADXStrategy(Strategy):
+    def __init__(self):
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
+    
+    def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
+        coin = coin.copy()
+
+        adx = ADXIndicator(high=coin['high'], low=coin['low'],close=coin['close'],window=14,fillna=False)
+
+        coin['signal'] = 0
+
+        coin['ADX'] = adx.adx()
+        coin['+DI'] = adx.adx_pos()
+        coin['-DI'] = adx.adx_neg()
+
+        coin['signal'] = np.where(
+            (coin['ADX'] > 25) & (coin['+DI'] > coin['-DI']), 1,
+            np.where(
+                (coin['ADX'] > 25) & (coin['-DI'] > coin['+DI']), -1, 0
+            )
+        )
+
+        self.signal_cols = ['signal']
+        self.indicator_cols = ['ADX','+DI','-DI']
+
+        return coin
+
+class IchimokuCloudStrategy(Strategy):
+    def __init__(self):
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
+    
+    def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
+        coin = coin.copy()
+
+        ichi = IchimokuIndicator(high=coin['high'],low=coin['low'],window1=9,window2=26,window3=52,fillna=False)
+        tenkan = ichi.ichimoku_conversion_line()
+        kijun = ichi.ichimoku_base_line()
+        span_a = ichi.ichimoku_a()
+        span_b = ichi.ichimoku_b()
 
 
 class FibonacciRetracementStrategy(Strategy):
