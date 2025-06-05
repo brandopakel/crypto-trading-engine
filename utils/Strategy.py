@@ -279,6 +279,44 @@ class VWAPStrategy(Strategy):
 
         return coin
 
+class OBVStrategy(Strategy):
+    def __init__(self):
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
+    
+    def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
+        coin = coin.copy()
+        coin['close'] = coin['close'].astype(float)
+        coin['volume'] = coin['volume'].astype(float)
+        coin['signal'] = 0
+
+        obv = [0]
+
+        for i in range(1, len(coin)):
+            if coin.loc[i, 'close'] > coin.loc[i-1, 'close']:
+                obv.append(obv[-1] + coin.loc[i, 'volume'])
+            elif coin.loc[i, 'close'] < coin.loc[i-1, 'close']:
+                obv.append(obv[-1] - coin.loc[i, 'volume'])
+            else:
+                obv.append(obv[-1])
+
+        coin['OBV'] = obv
+        coin['SMA10'] = coin['close'].rolling(window=10).mean()
+
+        for i in range(1, len(coin)):
+            if coin.loc[i, 'OBV'] > coin.loc[i-1, 'OBV'] and coin.loc[i, 'close'] > coin.loc[i, 'SMA10']:
+                coin.at[i, 'signal'] = 1
+            elif coin.loc[i, 'OBV'] < coin.loc[i-1, 'OBV'] and coin.loc[i, 'close'] < coin.loc[i, 'SMA10']:
+                coin.at[i, 'signal'] = -1
+
+        self.overlay_cols = ['SMA10']
+        self.indicator_cols = ['OBV']
+        self.signal_cols = ['signal']
+        
+        return coin
+
+
 class FibonacciRetracementStrategy(Strategy):
     def __init__(self):
         self.overlay_cols = []
