@@ -361,6 +361,37 @@ class IchimokuCloudStrategy(Strategy):
         span_a = ichi.ichimoku_a()
         span_b = ichi.ichimoku_b()
 
+        coin['signal'] = 0
+
+        coin['tenkan_sen'] = tenkan
+        coin['kijun_sen'] = kijun
+        coin['senkou_span_a'] = span_a
+        coin['senkou_span_b'] = span_b
+        coin['chikou_span'] = coin['close'].shift(-26)
+
+        bullish_cross = (coin['tenkan_sen'] > coin['kijun_sen']) & (coin['tenkan_sen'].shift(1) <= coin['kijun_sen'].shift(1))
+        bearish_cross = (coin['tenkan_sen'] < coin['kijun_sen']) & (coin['tenkan_sen'].shift(1) >= coin['kijun_sen'].shift(1))
+
+        bullish_conditions = (
+            bullish_cross &
+            (coin['close'] > coin[['senkou_span_a','senkou_span_b']].min(axis=1)) &
+            (coin['chikou_span'] > coin['close'])
+        )
+
+        bearish_conditions = (
+            bearish_cross &
+            (coin['close'] < coin[['senkou_span_a', 'senkou_span_b']].max(axis=1)) &
+            (coin['chikou_span'] < coin['close'])
+        )
+
+        coin.loc[bullish_conditions, 'signal'] = 1
+        coin.loc[bearish_conditions, 'signal'] = -1
+
+        self.overlay_cols = ['tenkan_sen','kijun_sen','chikou_span']
+        #self.indicator_cols = ['chikou_span']
+        self.signal_cols = ['signal']
+
+        return coin
 
 class FibonacciRetracementStrategy(Strategy):
     def __init__(self):

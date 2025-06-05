@@ -1,4 +1,4 @@
-from utils.Strategy import Strategy, BollingerBandsStrategy, MACDCrossoverStrategy,  RateOfChangeStrategy, RSIStrategy, MovingAverageCrossoverStrategy, ZScoreMeanReversionStrategy, FibonacciRetracementStrategy, ElliotWaveStrategy, VWAPStrategy, OBVStrategy, ADXStrategy
+from utils.Strategy import Strategy, BollingerBandsStrategy, MACDCrossoverStrategy,  RateOfChangeStrategy, RSIStrategy, MovingAverageCrossoverStrategy, ZScoreMeanReversionStrategy, FibonacciRetracementStrategy, ElliotWaveStrategy, VWAPStrategy, OBVStrategy, ADXStrategy, IchimokuCloudStrategy
 from pandas import DataFrame
 from utils.user_input import get_user_roc_inputs, get_user_ew_trend
 from strategies.elliot_wave import find_local_extrema, get_user_order_inputs
@@ -42,6 +42,10 @@ def multi_strategy_select() -> list[Strategy]:
         "adx": {
             "class": ADXStrategy,
             "desc": "Average Directional Movement Index"
+        },
+        "ichimoku": {
+            "class": IchimokuCloudStrategy,
+            "desc": "Ichimoku Cloud Strategy"
         },
         "fibonacci": {
                 "class": FibonacciRetracementStrategy,

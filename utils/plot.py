@@ -28,7 +28,7 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
                     name=col,
                     line=dict(
                         color='gold' if col == 'VWAP' else None,
-                        width=2 if col == 'VWAP' else 1
+                        width=2 if (col == 'VWAP' or col == 'chikou_span') else 1
                     )
                 ), row=1, col=1)
 
@@ -126,6 +126,26 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
                         showlegend=False,
                         legendgroup=f"EW {label}"
                     ), row=1, col=1)
+
+    # Span A
+    fig.add_trace(go.Scatter(
+        x=coin['timestamp'],
+        y=coin['senkou_span_a'],
+        mode='lines',
+        name='senkou_span_a',
+        line=dict(color='orange'),
+    ))
+
+    # Span B with fill to Span A
+    fig.add_trace(go.Scatter(
+        x=coin['timestamp'],
+        y=coin['senkou_span_b'],
+        mode='lines',
+        name='senkou_span_b',
+        line=dict(color='purple'),
+        fill='tonexty',
+        fillcolor='rgba(100, 100, 255, 0.2)'
+    ))
     
     #For testing:
     #wave_cols = [col for col in coin.columns if col.startswith("ew_")]
