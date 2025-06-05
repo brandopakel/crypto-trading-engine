@@ -1,6 +1,6 @@
 from utils.Strategy import Strategy, BollingerBandsStrategy, MACDCrossoverStrategy,  RateOfChangeStrategy, RSIStrategy, MovingAverageCrossoverStrategy, ZScoreMeanReversionStrategy, FibonacciRetracementStrategy, ElliotWaveStrategy
 from pandas import DataFrame
-from utils.user_input import get_user_roc_inputs
+from utils.user_input import get_user_roc_inputs, get_user_ew_trend
 from strategies.elliot_wave import find_local_extrema, get_user_order_inputs
 
 def multi_strategy_select() -> list[Strategy]:
@@ -55,8 +55,9 @@ def multi_strategy_select() -> list[Strategy]:
                 period, threshold = get_user_roc_inputs()
                 selected_strategies.append(strategy_class(period, threshold))
             if strategy_class == ElliotWaveStrategy:
+                trend = get_user_ew_trend()
                 order = get_user_order_inputs()
-                selected_strategies.append(strategy_class(order))
+                selected_strategies.append(strategy_class(order, trend))
             else:
                 selected_strategies.append(strategy_class())
         else:

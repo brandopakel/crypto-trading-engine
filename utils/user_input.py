@@ -74,3 +74,11 @@ def get_user_order_inputs():
             return sensitivity
         except ValueError:
             print("Invalid input. Please enter numeric values")
+
+def get_user_ew_trend():
+    while True:
+        try:
+            trend = input("\nEnter 'bullish' or 'bearish' trend indicator for EW: ").strip().lower()
+            return trend
+        except ValueError:
+            print("Invalid input. Please enter 'bullish' or 'bearish'.")

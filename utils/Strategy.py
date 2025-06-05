@@ -300,10 +300,11 @@ class FibonacciRetracementStrategy(Strategy):
         return plot_strategy(coin, title="Fibonacci Retracement", fib_levels=self.fib_levels, signal_col='signal')
 
 class ElliotWaveStrategy(Strategy):
-    def __init__(self, order: int):
+    def __init__(self, order: int, trend: str = ""):
         self.order = order
         self.overlay_cols = []
         self.wave_labels = ['0','1','2','3','4','5','a','b','c']
+        self.trend = trend
     def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
         # Detect extrema on a copy
         coin = find_local_extrema(coin, self.order)
@@ -327,7 +328,7 @@ class ElliotWaveStrategy(Strategy):
             #print(set(wave) - set(coin.index))
             #print(f"Checked wave: {wave}")
             if is_elliot_wave(coin_extrema, *wave):
-                if not check_local_trend(coin, wave, window=10,trend='bullish'):
+                if not check_local_trend(coin, wave, window=10,trend=self.trend):
                     continue
                 print(f"Valid wave found at indices: {wave}")
                 for label, idx in zip(self.wave_labels, wave):

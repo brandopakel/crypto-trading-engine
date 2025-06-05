@@ -349,7 +349,7 @@ def filterWaveSet(waves, min_len=6, max_len=6, extremes=True):
 
     return result
 
-def check_local_trend(coin: pd.DataFrame, wave: Optional[list] = None, window: int = 30, trend: str = 'bullish'):
+def check_local_trend(coin: pd.DataFrame, wave: Optional[list] = None, window: int = 30, trend: str = ""):
     i0, i5, ic = wave[0], wave[4], wave[8]
     coin_idx = coin.index.to_list()
     if i0 not in coin_idx or i5 not in coin_idx:
