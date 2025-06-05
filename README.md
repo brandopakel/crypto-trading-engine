@@ -13,11 +13,11 @@ A Python-based crypto trading engine designed to analyze market data, generate t
   - ROC
   - Fibonacci Retracement
   - Elliott Wave Visualization
-  - (Planned) Ichimoku Cloud
-  - (Planned) OBV (On-Balance Volume)
-  - (Planned) ADX (Average Directional Index)
+  - Ichimoku Cloud
+  - OBV (On-Balance Volume)
+  - ADX (Average Directional Index)
   - Volume-Weighted Average Price (VWAP)
-  - (Planned) Candlestick Pattern Recognition
+  - Candlestick Pattern Recognition
   - Plus More ...
 - 📦 Real-time data pulled via the **Coinbase API**
 - 🧪 Strategy testing on historical candle data
