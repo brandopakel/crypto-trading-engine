@@ -128,24 +128,43 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
                     ), row=1, col=1)
 
     # Span A
-    fig.add_trace(go.Scatter(
-        x=coin['timestamp'],
-        y=coin['senkou_span_a'],
-        mode='lines',
-        name='senkou_span_a',
-        line=dict(color='orange'),
-    ))
+    if 'senkou_span_a' in coin.columns:
+        fig.add_trace(go.Scatter(
+            x=coin['timestamp'],
+            y=coin['senkou_span_a'],
+            mode='lines',
+            name='senkou_span_a',
+            line=dict(color='orange'),
+        ),row=1,col=1)
 
     # Span B with fill to Span A
-    fig.add_trace(go.Scatter(
-        x=coin['timestamp'],
-        y=coin['senkou_span_b'],
-        mode='lines',
-        name='senkou_span_b',
-        line=dict(color='purple'),
-        fill='tonexty',
-        fillcolor='rgba(100, 100, 255, 0.2)'
-    ))
+    if 'senkou_span_b' in coin.columns:
+        fig.add_trace(go.Scatter(
+            x=coin['timestamp'],
+            y=coin['senkou_span_b'],
+            mode='lines',
+            name='senkou_span_b',
+            line=dict(color='purple'),
+            fill='tonexty',
+            fillcolor='rgba(100, 100, 255, 0.2)'
+        ),row=1,col=1)
+
+    gartley_points = ['gartley_x','gartley_a','gartley_b','gartley_c','gartley_d']
+    gartley_colors = ['white','orange','red','blue','green']
+
+    for point, color in zip(gartley_points, gartley_colors):
+        if point in coin.columns and coin[point].notna().any():
+            fig.add_trace(go.Scatter(
+                x=coin['timestamp'][coin[point].notna()],
+                y=coin[point][coin[point].notna()],
+                mode='markers+text+line',
+                name=point,
+                text=[point] * coin[point].notna().sum(),
+                textposition='top center',
+                marker=dict(size=10),
+                line=dict(color=color,width=2,dash='dot'),
+                showlegend=True
+            ), row=1,col=1)
     
     #For testing:
     #wave_cols = [col for col in coin.columns if col.startswith("ew_")]

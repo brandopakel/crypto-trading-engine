@@ -8,6 +8,7 @@ from strategies.elliot_wave import find_local_extrema, is_valid_wave, elliottWav
 import numpy as np
 import math
 from ta.trend import ADXIndicator, IchimokuIndicator
+from scipy.signal import find_peaks
 
 class Strategy(ABC):
     """
@@ -506,5 +507,85 @@ class ElliotWaveStrategy(Strategy):
 
                         if col_name not in self.overlay_cols:
                             self.overlay_cols.append(col_name)
+
+        return coin
+
+class GartleyPatternStrategy(Strategy):
+    def __init__(self):
+        self.overlay_cols = []
+        self.indicator_cols = []
+        self.signal_cols = []
+        self.gartley_cols = []
+    
+    def apply(self, coin: pd.DataFrame) -> pd.DataFrame:
+        coin = coin.copy()
+        coin['close'] = coin['close'].astype(float)
+        coin['signal'] = 0
+
+        c_prices = coin['close'].astype(float).values
+        highs = coin['high'].astype(float).values
+        lows = coin['low'].astype(float).values
+
+        price_peak_indices, _ = find_peaks(coin['close'], distance=5)
+        price_trough_indices, _ = find_peaks(-coin['close'], distance=5)
+        coin.loc[price_peak_indices, 'peak'] = coin.loc[price_peak_indices, 'close']
+        coin.loc[price_trough_indices, 'trough'] = coin.loc[price_trough_indices, 'close']
+
+        peak_indices, _ = find_peaks(highs, distance=5)
+        trough_indices, _ = find_peaks(lows,distance=5)
+
+        swing_points = np.sort(np.concat([peak_indices,trough_indices]))
+
+        for i in range(len(swing_points) - 4):
+            idxs = swing_points[i:i+5]
+            x_idx, a_idx, b_idx, c_idx, d_idx = idxs
+            prices = coin['close'].iloc[idxs].values
+
+            XA = prices[1] - prices[0] # A - X
+            AB = prices[2] - prices[1] # B - A
+            BC = prices[3] - prices[2] # C - B
+            CD = prices[4] - prices[3] # D - C
+            XD = prices[4] - prices[0] # D - X
+            
+            #Bullish conditions
+            if (
+                XA > 0 and
+                AB < 0 and
+                BC > 0 and
+                CD < 0 and
+                0.618 < abs(AB / XA) < 0.786 and
+                0.382 < abs(BC / AB) < 0.886 and
+                1.27 < abs(CD / BC) < 1.618 and
+                0.78 < abs(XD/XA) < 0.886
+            ):
+                print("found a bullish condition")
+                coin.at[coin.index[idxs[4]], 'signal'] = 1
+                coin.at[coin.index[x_idx], 'gartley_x'] = coin.at[x_idx, 'close']
+                coin.at[coin.index[a_idx], 'gartley_a'] = coin.at[a_idx, 'close']
+                coin.at[coin.index[b_idx], 'gartley_b'] = coin.at[b_idx, 'close']
+                coin.at[coin.index[c_idx], 'gartley_c'] = coin.at[c_idx, 'close']
+                coin.at[coin.index[d_idx], 'gartley_d'] = coin.at[d_idx, 'close'] 
+            
+            #Bearish conditions
+            if (
+                XA < 0 and
+                AB > 0 and
+                BC < 0 and
+                CD > 0 and
+                0.618 < abs(AB / XA) < 0.786 and
+                0.382 < abs(BC / AB) < 0.886 and
+                1.27 < abs(CD / BC) < 1.618 and
+                0.78 < abs(XD/XA) < 0.886
+            ):
+                print("found a bearish condition")
+                coin.at[coin.index[idxs[4]],'signal'] = -1
+                coin.at[coin.index[x_idx], 'gartley_x'] = coin.at[x_idx, 'close']
+                coin.at[coin.index[a_idx], 'gartley_a'] = coin.at[a_idx, 'close']
+                coin.at[coin.index[b_idx], 'gartley_b'] = coin.at[b_idx, 'close']
+                coin.at[coin.index[c_idx], 'gartley_c'] = coin.at[c_idx, 'close']
+                coin.at[coin.index[d_idx], 'gartley_d'] = coin.at[d_idx, 'close'] 
+
+        self.overlay_cols = ['peak','trough']
+        self.signal_cols = ['signal']
 
         return coin
