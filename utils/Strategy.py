@@ -535,57 +535,172 @@ class GartleyPatternStrategy(Strategy):
         trough_indices, _ = find_peaks(lows,distance=5)
 
         swing_points = np.sort(np.concat([peak_indices,trough_indices]))
-
+        _, unique_indices = np.unique(swing_points, return_index=True)
+        swing_points = swing_points[np.sort(unique_indices)]
+        #swing_points = pd.concat([peak_indices, trough_indices]).sort_index()
+        #swing_points = swing_points[~swing_points.index.duplicated()]
+        
         for i in range(len(swing_points) - 4):
             idxs = swing_points[i:i+5]
             x_idx, a_idx, b_idx, c_idx, d_idx = idxs
             prices = coin['close'].iloc[idxs].values
 
+            #x, a, b, c, d = i, i+1, i+2, i+3, i+4
+            #px, pa, pb, pc, pd = c_prices[x], c_prices[a], c_prices[b], c_prices[c], c_prices[d]
+
+            #xa = pa - px
+            #ab = pb - pa
+            #bc = pc - pb
+            #cd = pd - pc
+            #xd = pd - px
+        
             XA = prices[1] - prices[0] # A - X
             AB = prices[2] - prices[1] # B - A
             BC = prices[3] - prices[2] # C - B
             CD = prices[4] - prices[3] # D - C
             XD = prices[4] - prices[0] # D - X
+
+            #print(f"XA: {XA}, AB: {AB}, BC: {BC}, CD: {CD}, AD: {XD}")
+            
+            def in_range(val, base, low, high):
+                ratio = abs(val) / abs(base)
+                return low <= ratio <= high
+            
+            def debug_ratios(XA, AB, BC, CD, XD):
+                ab_xa = abs(AB / XA)
+                bc_ab = abs(BC / AB)
+                cd_bc = abs(CD / BC)
+                xd_xa = abs(XA / XD)
+
+                #print(f"Ratios → AB/XA: {ab_xa:.3f}, BC/AB: {bc_ab:.3f}, CD/BC: {cd_bc:.3f}, AD/XA: {xd_xa:.3f}")
+
+                valid = (
+                    0.60 <= ab_xa <= 0.70 and
+                    0.382 <= bc_ab <= 0.886 and
+                    1.27 <= cd_bc <= 1.618 and
+                    0.75 <= xd_xa <= 0.82
+                )
+
+                distance_ab_xa_from_min = abs(ab_xa - 0.60)
+                distance_ab_xa_from_max = abs(ab_xa - 0.70)
+                distance_bc_ab_from_min = abs(bc_ab - 0.382)
+                distance_bc_ab_from_max = abs(bc_ab - 0.886)
+                distance_cd_bc_from_min = abs(cd_bc - 1.27)
+                distance_cd_bc_from_max = abs(cd_bc - 1.618)
+                distance_xd_xa_from_min = abs(xd_xa - 0.75)
+                distance_xd_xa_from_max = abs(xd_xa - 0.82)
+
+                print("✅ MATCH" if valid else "❌ NO MATCH")
+
+                if distance_ab_xa_from_min:
+                    print(f"Distance from ab_xa from min: {distance_ab_xa_from_min}")
+                if distance_ab_xa_from_max:
+                    print(f"Distance from ab_xa from max: {distance_ab_xa_from_max}")
+                if distance_bc_ab_from_min:
+                    print(f"Distance from bc_ab from min: {distance_bc_ab_from_min}")
+                if distance_bc_ab_from_max:
+                    print(f"Distance from bc_ab from max: {distance_bc_ab_from_max}")
+                if distance_cd_bc_from_min:
+                    print(f"Distance from cd_bc from min: {distance_cd_bc_from_min}")
+                if distance_cd_bc_from_max:
+                    print(f"Distance from cd_bc from max: {distance_cd_bc_from_max}")
+                if distance_xd_xa_from_min:
+                    print(f"Distance from xd_xa from min: {distance_xd_xa_from_min}")
+                if distance_xd_xa_from_max:
+                    print(f"Distance from xd_xa from max: {distance_xd_xa_from_max}")
+            
+            #debug_ratios(XA, AB, BC, CD, XD)
+
+            ideal_ratios = {
+                "ab_xa" : 0.618,
+                "bc_ab": 0.618,
+                "cd_bc": 1.272,
+                "ad_xa": 0.786
+            }
+
+            def score(XA, AB, BC, CD, XD):
+                ab_xa = abs(AB / XA)
+                bc_ab = abs(BC / AB)
+                cd_bc = abs(CD / BC)
+                xd_xa = abs(XA / XD)
+
+                """score = sum([
+                    abs(ab_xa - ideal_ratios["ab_xa"]),
+                    abs(bc_ab - ideal_ratios["bc_ab"]),
+                    abs(cd_bc - ideal_ratios["cd_bc"]),
+                    abs(xd_xa - ideal_ratios["ad_xa"])
+                ])"""
+
+                score = np.mean([
+                    min(abs(ab_xa - 0.618) / 0.618, 1.0),
+                    min(abs(bc_ab - 0.618) / 0.618, 1.0),
+                    min(abs(cd_bc - 1.272) / 1.272, 1.0),
+                    min(abs(xd_xa - 0.786) / 0.786, 1.0)
+                ])
+
+                print(score)
+
+                return score
+            
+            #bullish_score = score(XA, AB, BC, CD, XD, pattern_type = "bullish")
+            #bearish_score = score(XA, AB, BC, CD, XD, pattern_type= "bearish")
+            threshold = 0.6
+
             
             #Bullish conditions
-            if (
-                XA > 0 and
+            """XA > 0 and
                 AB < 0 and
                 BC > 0 and
                 CD < 0 and
-                0.618 < abs(AB / XA) < 0.786 and
-                0.382 < abs(BC / AB) < 0.886 and
-                1.27 < abs(CD / BC) < 1.618 and
-                0.78 < abs(XD/XA) < 0.886
+                in_range(AB, XA, 0.60, 0.70) and
+                in_range(BC, AB, 0.382, 0.886) and
+                in_range(CD, BC, 1.27, 1.618) and
+                in_range(XD, XA, 0.76, 0.82)"""
+            
+            #All conditions
+            if (
+                score(XA, AB, BC, CD, XD) < threshold
             ):
-                print("found a bullish condition")
-                coin.at[coin.index[idxs[4]], 'signal'] = 1
-                coin.at[coin.index[x_idx], 'gartley_x'] = coin.at[x_idx, 'close']
-                coin.at[coin.index[a_idx], 'gartley_a'] = coin.at[a_idx, 'close']
-                coin.at[coin.index[b_idx], 'gartley_b'] = coin.at[b_idx, 'close']
-                coin.at[coin.index[c_idx], 'gartley_c'] = coin.at[c_idx, 'close']
-                coin.at[coin.index[d_idx], 'gartley_d'] = coin.at[d_idx, 'close'] 
+                if coin.at[coin.index[d_idx],'close'] < coin.at[coin.index[x_idx], 'close']:
+                    print("found a bullish condition")
+                    coin.at[coin.index[d_idx], 'signal'] = 1
+                    print(f"Assigned BUY signal at idx={idxs[4]} / time={coin.index[idxs[4]]}")
+                if coin.at[coin.index[d_idx],'close'] > coin.at[coin.index[x_idx], 'close']:
+                    print("found a bearish condition")
+                    coin.at[coin.index[d_idx],'signal'] = -1
+                    print(f"Assigned SELL signal at idx={idxs[4]} / time={coin.index[idxs[4]]}")
+                coin.at[coin.index[x_idx], 'gartley_x'] = coin.at[coin.index[x_idx], 'close']
+                coin.at[coin.index[a_idx], 'gartley_a'] = coin.at[coin.index[a_idx], 'close']
+                coin.at[coin.index[b_idx], 'gartley_b'] = coin.at[coin.index[b_idx], 'close']
+                coin.at[coin.index[c_idx], 'gartley_c'] = coin.at[coin.index[c_idx], 'close']
+                coin.at[coin.index[d_idx], 'gartley_d'] = coin.at[coin.index[d_idx], 'close']
             
             #Bearish conditions
+            """XA > 0 and
+                AB < 0 and
+                BC > 0 and
+                CD < 0 and
+                in_range(AB, XA, 0.60, 0.70) and
+                in_range(BC, AB, 0.382, 0.886) and
+                in_range(CD, BC, 1.27, 1.618) and
+                in_range(XD, XA, 0.76, 0.82)
             if (
-                XA < 0 and
-                AB > 0 and
-                BC < 0 and
-                CD > 0 and
-                0.618 < abs(AB / XA) < 0.786 and
-                0.382 < abs(BC / AB) < 0.886 and
-                1.27 < abs(CD / BC) < 1.618 and
-                0.78 < abs(XD/XA) < 0.886
+                score(XA, AB, BC, CD, XD) < threshold
             ):
-                print("found a bearish condition")
-                coin.at[coin.index[idxs[4]],'signal'] = -1
-                coin.at[coin.index[x_idx], 'gartley_x'] = coin.at[x_idx, 'close']
-                coin.at[coin.index[a_idx], 'gartley_a'] = coin.at[a_idx, 'close']
-                coin.at[coin.index[b_idx], 'gartley_b'] = coin.at[b_idx, 'close']
-                coin.at[coin.index[c_idx], 'gartley_c'] = coin.at[c_idx, 'close']
-                coin.at[coin.index[d_idx], 'gartley_d'] = coin.at[d_idx, 'close'] 
+                if XA > 0 and AB < 0 and BC > 0 and CD < 0:
+                    print("found a bearish condition")
+                    coin.at[coin.index[idxs[4]],'signal'] = -1
+                    print(f"Assigned SELL signal at idx={idxs[4]} / time={coin.index[idxs[4]]}")
+                coin.at[coin.index[x_idx], 'gartley_x'] = coin.at[coin.index[x_idx], 'close']
+                coin.at[coin.index[a_idx], 'gartley_a'] = coin.at[coin.index[a_idx], 'close']
+                coin.at[coin.index[b_idx], 'gartley_b'] = coin.at[coin.index[b_idx], 'close']
+                coin.at[coin.index[c_idx], 'gartley_c'] = coin.at[coin.index[c_idx], 'close']
+                coin.at[coin.index[d_idx], 'gartley_d'] = coin.at[coin.index[d_idx], 'close']"""
 
-        self.overlay_cols = ['peak','trough']
+        if 'gartley_x' and 'gartley_a' and 'gartley_b' and 'gartley_c' and 'gartley_d' in coin.columns:
+            self.overlay_cols = ['peak','trough']
         self.signal_cols = ['signal']
+
+        print(coin[coin['signal'] != 0][['signal']])
 
         return coin

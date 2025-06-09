@@ -157,7 +157,7 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
             fig.add_trace(go.Scatter(
                 x=coin['timestamp'][coin[point].notna()],
                 y=coin[point][coin[point].notna()],
-                mode='markers+text+line',
+                mode='markers+text+lines',
                 name=point,
                 text=[point] * coin[point].notna().sum(),
                 textposition='top center',
