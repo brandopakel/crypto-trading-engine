@@ -638,7 +638,7 @@ class GartleyPatternStrategy(Strategy):
                     min(abs(xd_xa - 0.786) / 0.786, 1.0)
                 ])
 
-                print(score)
+                #print(score)
 
                 return score
             
@@ -662,13 +662,13 @@ class GartleyPatternStrategy(Strategy):
                 score(XA, AB, BC, CD, XD) < threshold
             ):
                 if coin.at[coin.index[d_idx],'close'] < coin.at[coin.index[x_idx], 'close']:
-                    print("found a bullish condition")
+                    #print("found a bullish condition")
                     coin.at[coin.index[d_idx], 'signal'] = 1
-                    print(f"Assigned BUY signal at idx={idxs[4]} / time={coin.index[idxs[4]]}")
+                    #print(f"Assigned BUY signal at idx={idxs[4]} / time={coin.index[idxs[4]]}")
                 if coin.at[coin.index[d_idx],'close'] > coin.at[coin.index[x_idx], 'close']:
-                    print("found a bearish condition")
+                    #print("found a bearish condition")
                     coin.at[coin.index[d_idx],'signal'] = -1
-                    print(f"Assigned SELL signal at idx={idxs[4]} / time={coin.index[idxs[4]]}")
+                    #print(f"Assigned SELL signal at idx={idxs[4]} / time={coin.index[idxs[4]]}")
                 coin.at[coin.index[x_idx], 'gartley_x'] = coin.at[coin.index[x_idx], 'close']
                 coin.at[coin.index[a_idx], 'gartley_a'] = coin.at[coin.index[a_idx], 'close']
                 coin.at[coin.index[b_idx], 'gartley_b'] = coin.at[coin.index[b_idx], 'close']
@@ -701,6 +701,6 @@ class GartleyPatternStrategy(Strategy):
             self.overlay_cols = ['peak','trough']
         self.signal_cols = ['signal']
 
-        print(coin[coin['signal'] != 0][['signal']])
+        #print(coin[coin['signal'] != 0][['signal']])
 
         return coin

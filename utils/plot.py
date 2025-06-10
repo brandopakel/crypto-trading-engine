@@ -32,26 +32,6 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
                     )
                 ), row=1, col=1)
 
-    if signal_col and signal_col in coin.columns:
-        buys = coin[coin[signal_col] == 1]
-        sells = coin[coin[signal_col] == -1]
-
-        fig.add_trace(go.Scatter(
-            x=buys['timestamp'],
-            y=buys['close'],
-            mode='markers',
-            name='Buy Signal',
-            marker=dict(symbol='triangle-up', color='lime', size=10)
-        ), row=1, col=1)
-
-        fig.add_trace(go.Scatter(
-            x=sells['timestamp'],
-            y=sells['close'],
-            mode='markers',
-            name='Sell Signal',
-            marker=dict(symbol='triangle-down', color='red', size=10)
-        ), row=1, col=1)
-
     if indicators:
         for col in indicators:
             if col in coin.columns:
@@ -169,6 +149,26 @@ def plot_strategy(coin : pd.DataFrame, title : str = "Strategy Visualization", o
     #For testing:
     #wave_cols = [col for col in coin.columns if col.startswith("ew_")]
     #print(coin[wave_cols].dropna(how='all').head(10))
+
+    if signal_col and signal_col in coin.columns:
+        buys = coin[coin[signal_col] == 1]
+        sells = coin[coin[signal_col] == -1]
+
+        fig.add_trace(go.Scatter(
+            x=buys['timestamp'],
+            y=buys['close'],
+            mode='markers',
+            name='Buy Signal',
+            marker=dict(symbol='triangle-up', color='lime', size=10)
+        ), row=1, col=1)
+
+        fig.add_trace(go.Scatter(
+            x=sells['timestamp'],
+            y=sells['close'],
+            mode='markers',
+            name='Sell Signal',
+            marker=dict(symbol='triangle-down', color='red', size=10)
+        ), row=1, col=1)
 
     fig.update_layout(
         xaxis_rangeslider_visible=False,
